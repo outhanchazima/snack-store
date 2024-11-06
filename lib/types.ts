@@ -34,3 +34,10 @@ export interface CartItem {
   quantity: number;
   price: number;
 }
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+}
