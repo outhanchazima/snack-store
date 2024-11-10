@@ -5,38 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
+import { getAllZones, getLocationsByZone, getZoneByLocation } from "@/lib/api";
 import { cartAtom, cartTotalAtom, isCartOpenAtom } from "@/lib/store";
+import { DeliveryZone, Location } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAtom } from "jotai";
 import { ArrowLeft, Minus, Plus, X } from "lucide-react";
-import { useState } from "react";
-
-
-// Mock data for delivery zones
-const DELIVERY_ZONES = [
-  { id: "1", name: "Zone A - CBD", fee: 200 },
-  { id: "2", name: "Zone B - Westlands", fee: 250 },
-  { id: "3", name: "Zone C - Kileleshwa", fee: 300 },
-];
-
-const LOCATIONS = {
-  "1": [
-    { id: "1a", name: "City Hall" },
-    { id: "1b", name: "Archives" },
-    { id: "1c", name: "Moi Avenue" },
-  ],
-  "2": [
-    { id: "2a", name: "The Mall" },
-    { id: "2b", name: "Sarit Centre" },
-    { id: "2c", name: "The Oval" },
-  ],
-  "3": [
-    { id: "3a", name: "Valley Arcade" },
-    { id: "3b", name: "Ringroad Mall" },
-    { id: "3c", name: "ArtCaffe" },
-  ],
-};
+import { useEffect, useState } from "react";
 
 export function Cart() {
   const [isOpen, setIsOpen] = useAtom(isCartOpenAtom);
@@ -51,7 +27,52 @@ export function Cart() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const selectedZoneData = DELIVERY_ZONES.find(zone => zone.id === selectedZone);
+  // Data states
+  const [zones, setZones] = useState<DeliveryZone[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [selectedZoneData, setSelectedZoneData] = useState<DeliveryZone | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Fetch zones on component mount
+  useEffect(() => {
+    const fetchZones = async () => {
+      setIsLoading(true);
+      try {
+        const fetchedZones = await getAllZones();
+        setZones(fetchedZones);
+      } catch (error) {
+        console.error('Failed to fetch zones:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchZones();
+  }, []);
+
+  // Fetch locations when zone is selected
+  useEffect(() => {
+    const fetchLocations = async () => {
+      if (!selectedZone) {
+        setLocations([]);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const fetchedLocations = await getLocationsByZone(selectedZone);
+        setLocations(fetchedLocations);
+        
+        const zoneData = await getZoneByLocation(selectedZone);
+        setSelectedZoneData(zoneData || null);
+      } catch (error) {
+        console.error('Failed to fetch locations:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchLocations();
+  }, [selectedZone]);
+
   const deliveryFee = selectedZoneData?.fee || 0;
   const totalWithDelivery = total + deliveryFee;
 
@@ -103,6 +124,7 @@ export function Cart() {
       setSelectedLocation("");
       setDeliveryInstructions("");
       setPhoneNumber("");
+      setSelectedZoneData(null);
     }, 300);
   };
 
@@ -197,12 +219,16 @@ export function Cart() {
                   <label className="block text-sm font-medium mb-1">
                     Select Zone
                   </label>
-                  <Select value={selectedZone} onValueChange={setSelectedZone}>
+                  <Select 
+                    value={selectedZone} 
+                    onValueChange={setSelectedZone}
+                    disabled={isLoading}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select delivery zone" />
                     </SelectTrigger>
                     <SelectContent>
-                      {DELIVERY_ZONES.map(zone => (
+                      {zones.map(zone => (
                         <SelectItem key={zone.id} value={zone.id}>
                           {zone.name} - {formatCurrency(zone.fee)}
                         </SelectItem>
@@ -216,12 +242,16 @@ export function Cart() {
                     <label className="block text-sm font-medium mb-1">
                       Select Location
                     </label>
-                    <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                    <Select 
+                      value={selectedLocation} 
+                      onValueChange={setSelectedLocation}
+                      disabled={isLoading}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select location" />
                       </SelectTrigger>
                       <SelectContent>
-                        {LOCATIONS[selectedZone]?.map(location => (
+                        {locations.map(location => (
                           <SelectItem key={location.id} value={location.id}>
                             {location.name}
                           </SelectItem>
@@ -334,7 +364,8 @@ export function Cart() {
               disabled={
                 (stage === "delivery" && (!selectedZone || !selectedLocation)) ||
                 (stage === "payment" && !phoneNumber) ||
-                isProcessing
+                isProcessing ||
+                isLoading
               }
               onClick={() => {
                 if (stage === "cart") setStage("delivery");
@@ -343,6 +374,7 @@ export function Cart() {
               }}
             >
               {isProcessing ? "Processing..." : 
+                isLoading ? "Loading..." :
                 stage === "cart" ? "Continue to Delivery" :
                 stage === "delivery" ? "Continue to Payment" :
                 "Pay with M-Pesa"}

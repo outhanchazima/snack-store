@@ -1,3 +1,5 @@
+import { AllLocations, DeliveryZone, Location, LocationsByZone } from "./types";
+
 // Mock data for development
 const mockProducts = [
   {
@@ -5,7 +7,9 @@ const mockProducts = [
     name: "Premium Mixed Nuts",
     description: "A delicious blend of premium nuts",
     price: 19.99,
-    images: ["/api/placeholder/800/800"],
+    images: [
+      "https://greenspoon.co.ke/wp-content/uploads/2024/11/Chocolate-Bundt-cake.jpg",
+    ],
     rating: 4.5,
     category: "nuts",
     stock: 50,
@@ -35,7 +39,9 @@ const mockProducts = [
     name: "Sea Salt Potato Chips",
     description: "Crispy potato chips with a perfect touch of sea salt",
     price: 3.99,
-    images: ["/api/placeholder/800/800"],
+    images: [
+      "https://greenspoon.co.ke/wp-content/uploads/2024/11/Chocolate-Bundt-cake.jpg",
+    ],
     rating: 4.3,
     category: "chips",
     stock: 100,
@@ -61,7 +67,9 @@ const mockProducts = [
     name: "Dark Chocolate Trail Mix",
     description: "Premium trail mix with dark chocolate chunks",
     price: 15.99,
-    images: ["/api/placeholder/800/800"],
+    images: [
+      "https://greenspoon.co.ke/wp-content/uploads/2024/11/Chocolate-Bundt-cake.jpg",
+    ],
     rating: 4.7,
     category: "trail_mix",
     stock: 75,
@@ -87,7 +95,9 @@ const mockProducts = [
     name: "Honey Roasted Peanuts",
     description: "Sweet and salty honey-glazed peanuts",
     price: 8.99,
-    images: ["/api/placeholder/800/800"],
+    images: [
+      "https://greenspoon.co.ke/wp-content/uploads/2024/11/Chocolate-Bundt-cake.jpg",
+    ],
     rating: 4.4,
     category: "nuts",
     stock: 120,
@@ -117,7 +127,9 @@ const mockProducts = [
     name: "Organic Dried Mango",
     description: "Sweet and chewy dried mango slices",
     price: 12.99,
-    images: ["/api/placeholder/800/800"],
+    images: [
+      "https://greenspoon.co.ke/wp-content/uploads/2024/11/Chocolate-Bundt-cake.jpg",
+    ],
     rating: 4.8,
     category: "dried_fruit",
     stock: 60,
@@ -147,7 +159,9 @@ const mockProducts = [
     name: "Spicy Seaweed Crisps",
     description: "Crispy seaweed sheets with spicy seasoning",
     price: 5.99,
-    images: ["/api/placeholder/800/800"],
+    images: [
+      "https://greenspoon.co.ke/wp-content/uploads/2024/11/Chocolate-Bundt-cake.jpg",
+    ],
     rating: 4.2,
     category: "seaweed",
     stock: 90,
@@ -177,7 +191,9 @@ const mockProducts = [
     name: "Protein Energy Balls",
     description: "No-bake protein-packed energy balls",
     price: 16.99,
-    images: ["/api/placeholder/800/800"],
+    images: [
+      "https://greenspoon.co.ke/wp-content/uploads/2024/11/Chocolate-Bundt-cake.jpg",
+    ],
     rating: 4.6,
     category: "protein_snacks",
     stock: 45,
@@ -207,7 +223,9 @@ const mockProducts = [
     name: "Wasabi Peas",
     description: "Crunchy green peas with spicy wasabi coating",
     price: 7.99,
-    images: ["/api/placeholder/800/800"],
+    images: [
+      "https://greenspoon.co.ke/wp-content/uploads/2024/11/Chocolate-Bundt-cake.jpg",
+    ],
     rating: 4.1,
     category: "legumes",
     stock: 85,
@@ -233,7 +251,9 @@ const mockProducts = [
     name: "Coconut Chips",
     description: "Crispy toasted coconut chips",
     price: 9.99,
-    images: ["/api/placeholder/800/800"],
+    images: [
+      "https://greenspoon.co.ke/wp-content/uploads/2024/11/Chocolate-Bundt-cake.jpg",
+    ],
     rating: 4.5,
     category: "chips",
     stock: 70,
@@ -263,7 +283,9 @@ const mockProducts = [
     name: "Quinoa Crackers",
     description: "Gluten-free crackers made with quinoa",
     price: 6.99,
-    images: ["/api/placeholder/800/800"],
+    images: [
+      "https://greenspoon.co.ke/wp-content/uploads/2024/11/Chocolate-Bundt-cake.jpg",
+    ],
     rating: 4.3,
     category: "crackers",
     stock: 95,
@@ -289,7 +311,9 @@ const mockProducts = [
     name: "Matcha Green Tea Cookies",
     description: "Japanese-style matcha green tea cookies",
     price: 11.99,
-    images: ["/api/placeholder/800/800"],
+    images: [
+      "https://greenspoon.co.ke/wp-content/uploads/2024/11/Chocolate-Bundt-cake.jpg",
+    ],
     rating: 4.4,
     category: "cookies",
     stock: 65,
@@ -319,7 +343,9 @@ const mockProducts = [
     name: "Roasted Chickpeas",
     description: "Crunchy roasted chickpeas with mediterranean seasoning",
     price: 8.99,
-    images: ["/api/placeholder/800/800"],
+    images: [
+      "https://greenspoon.co.ke/wp-content/uploads/2024/11/Chocolate-Bundt-cake.jpg",
+    ],
     rating: 4.2,
     category: "legumes",
     stock: 80,
@@ -349,7 +375,9 @@ const mockProducts = [
     name: "Acai Berry Bites",
     description: "Freeze-dried acai berry and dark chocolate bites",
     price: 14.99,
-    images: ["/api/placeholder/800/800"],
+    images: [
+      "https://greenspoon.co.ke/wp-content/uploads/2024/11/Chocolate-Bundt-cake.jpg",
+    ],
     rating: 4.7,
     category: "superfoods",
     stock: 55,
@@ -391,27 +419,54 @@ export async function fetchProductsByCategory(category: string) {
   return mockProducts.filter((product) => product.category === category);
 }
 
-// Mock data for delivery zones
-const DELIVERY_ZONES = [
+// Example type guard to ensure a location belongs to a zone
+function isLocationInZone(location: Location, zoneId: string): boolean {
+  return location.zoneId === zoneId;
+}
+
+// Updated data structure with proper typing
+export const DELIVERY_ZONES: DeliveryZone[] = [
   { id: "1", name: "Zone A - CBD", fee: 200 },
   { id: "2", name: "Zone B - Westlands", fee: 250 },
   { id: "3", name: "Zone C - Kileleshwa", fee: 300 },
 ];
 
-const LOCATIONS = {
+export const LOCATIONS: LocationsByZone = {
   "1": [
-    { id: "1a", name: "City Hall" },
-    { id: "1b", name: "Archives" },
-    { id: "1c", name: "Moi Avenue" },
+    { id: "1a", name: "City Hall", zoneId: "1" },
+    { id: "1b", name: "Archives", zoneId: "1" },
+    { id: "1c", name: "Moi Avenue", zoneId: "1" },
   ],
   "2": [
-    { id: "2a", name: "The Mall" },
-    { id: "2b", name: "Sarit Centre" },
-    { id: "2c", name: "The Oval" },
+    { id: "2a", name: "The Mall", zoneId: "2" },
+    { id: "2b", name: "Sarit Centre", zoneId: "2" },
+    { id: "2c", name: "The Oval", zoneId: "2" },
   ],
   "3": [
-    { id: "3a", name: "Valley Arcade" },
-    { id: "3b", name: "Ringroad Mall" },
-    { id: "3c", name: "ArtCaffe" },
+    { id: "3a", name: "Valley Arcade", zoneId: "3" },
+    { id: "3b", name: "Ringroad Mall", zoneId: "3" },
+    { id: "3c", name: "ArtCaffe", zoneId: "3" },
   ],
 };
+
+// Helper function to get all locations as a flat array
+export function getAllLocations(): AllLocations {
+  return Object.values(LOCATIONS).flat();
+}
+
+export async function getAllZones(): Promise<DeliveryZone[]> {
+  return DELIVERY_ZONES;
+}
+
+export async function getLocationsByZone(zoneId: string): Promise<Location[]> {
+  return LOCATIONS[zoneId] || [];
+}
+
+export async function getZoneByLocation(
+  locationId: string
+): Promise<DeliveryZone | undefined> {
+  const location = getAllLocations().find((loc) => loc.id === locationId);
+  if (!location) return undefined;
+
+  return DELIVERY_ZONES.find((zone) => zone.id === location.zoneId);
+}

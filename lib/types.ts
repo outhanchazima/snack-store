@@ -41,3 +41,22 @@ export interface User {
   email: string;
   avatar?: string;
 }
+
+export interface DeliveryZone {
+  id: string;
+  name: string;
+  fee: number;
+}
+
+export interface Location {
+  id: string;
+  name: string;
+  zoneId: string; // Reference to the parent zone
+}
+
+export interface LocationsByZone {
+  [zoneId: string]: Location[];
+}
+
+// Helper type to get all locations as a flat array
+export type AllLocations = Location[];
